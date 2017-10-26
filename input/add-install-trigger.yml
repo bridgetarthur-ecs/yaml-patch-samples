@@ -1,0 +1,43 @@
+# create new schedule to check for updates of pcf-pipelines
+- op: add
+  path: /resources/-
+  value:
+    name: schedule
+    type: time
+    source:
+      interval: 30m
+      start: "12:00 AM"
+      stop: "11:59 PM"
+      location: America/Denver
+# add new resource to get pcf-pipelines from pivnet
+- op: add
+  path: /resources/-
+  value:
+    name: pcf-pipelines-pivnet
+    type: pivnet
+    source:
+      api_token: {{pivnet_token}}
+      product_slug: {{pivnet_product_slug}}
+      sort_by: semver
+# add new job to check for pcf-pipelines changes and kick off deploy pipeline
+- op: add
+  path: /jobs/-
+  value:
+    name: regulator
+    plan:
+      - get: schedule
+        trigger: true
+      - get: pcf-pipelines-pivnet
+        params: { globs: [] }
+        trigger: true
+      - get: pivnet-opsman-product
+        resource: pcf-ops-manager
+        params: { globs: [] } #doesn't download product
+# modify existing deploy-opsman job to add passed param
+- op: add
+  path: /jobs/name=deploy-opsman/plan/0/aggregate/get=pivnet-opsman-product/passed
+  value: [regulator]
+# add a trigger
+- op: add
+  path: /jobs/name=deploy-opsman/plan/0/aggregate/get=pivnet-opsman-product/trigger
+  value: true

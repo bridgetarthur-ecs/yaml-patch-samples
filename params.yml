@@ -1,0 +1,3 @@
+pivnet_product_slug: elastic-runtime
+opsman_major_minor_version: ^1\.12\..*$ # PCF Ops Manager minor version to track
+ert_major_minor_version: ^1\.12\..*$ # PCF Elastic Runtime minor version to track

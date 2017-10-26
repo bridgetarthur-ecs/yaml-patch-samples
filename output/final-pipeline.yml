@@ -1,0 +1,122 @@
+groups: []
+resources:
+- name: pcf-pipelines
+  type: git
+  source:
+    branch: master
+    private_key: {{git_private_key}}
+    uri: git@github.com:pivotal-cf/pcf-pipelines.git
+- name: pcf-ops-manager
+  type: pivnet
+  source:
+    api_token: {{pivnet_token}}
+    product_slug: ops-manager
+    product_version: {{opsman_major_minor_version}}
+    sort_by: semver
+- name: schedule
+  type: time
+  source:
+    interval: 30m
+    location: America/Denver
+    start: 12:00 AM
+    stop: 11:59 PM
+- name: pcf-pipelines-pivnet
+  type: pivnet
+  source:
+    api_token: {{pivnet_token}}
+    product_slug: {{pivnet_product_slug}}
+    sort_by: semver
+resource_types:
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
+jobs:
+- name: deploy-opsman
+  plan:
+  - aggregate:
+    - get: pcf-pipelines
+    - get: pivnet-opsman-product
+      passed:
+      - regulator
+      trigger: true
+      resource: pcf-ops-manager
+      params:
+        globs:
+        - '*.ova'
+  - task: deploy
+    file: pcf-pipelines/install-pcf/vsphere/tasks/import-opsman/task.yml
+- name: regulator
+  plan:
+  - get: schedule
+    trigger: true
+  - get: pcf-pipelines-pivnet
+    trigger: true
+    params:
+      globs: []
+  - get: pivnet-opsman-product
+    resource: pcf-ops-manager
+    params:
+      globs: []
+groups: []
+resources:
+- name: pcf-pipelines
+  type: git
+  source:
+    branch: master
+    private_key: {{git_private_key}}
+    uri: git@github.com:pivotal-cf/pcf-pipelines.git
+- name: pcf-ops-manager
+  type: pivnet
+  source:
+    api_token: {{pivnet_token}}
+    product_slug: ops-manager
+    product_version: {{opsman_major_minor_version}}
+    sort_by: semver
+- name: schedule
+  type: time
+  source:
+    interval: 30m
+    location: America/Denver
+    start: 12:00 AM
+    stop: 11:59 PM
+- name: pcf-pipelines-pivnet
+  type: pivnet
+  source:
+    api_token: {{pivnet_token}}
+    product_slug: {{pivnet_product_slug}}
+    sort_by: semver
+resource_types:
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
+jobs:
+- name: deploy-opsman
+  plan:
+  - aggregate:
+    - get: pcf-pipelines
+    - get: pivnet-opsman-product
+      passed:
+      - regulator
+      trigger: true
+      resource: pcf-ops-manager
+      params:
+        globs:
+        - '*.ova'
+  - task: deploy
+    file: pcf-pipelines/install-pcf/vsphere/tasks/import-opsman/task.yml
+- name: regulator
+  plan:
+  - get: schedule
+    trigger: true
+  - get: pcf-pipelines-pivnet
+    trigger: true
+    params:
+      globs: []
+  - get: pivnet-opsman-product
+    resource: pcf-ops-manager
+    params:
+      globs: []
